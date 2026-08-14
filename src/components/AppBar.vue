@@ -51,7 +51,7 @@ const subjectStore = useSubjectStore()
 const { selectedSubject } = storeToRefs(subjectStore)
 
 const breadcrumbItems = computed(() => {
-  if (route.name === 'questions' && selectedSubject.value) {
+  if (route.name === 'questions' || route.name == 'quick-prep' && selectedSubject.value) {
     const items = []
     const sub = selectedSubject.value
     if (sub.department) {
@@ -61,10 +61,8 @@ const breadcrumbItems = computed(() => {
         route: {name: 'subjects'}
       })
     }
-    if (sub.name) {
-      items.push({ label: selectedSubject.value.name })
-    }
-
+    if (sub.name) items.push({ label: selectedSubject.value.name })
+    if(route.name == 'quick-prep') items.push({label: 'Quick Prep'})
     return items
   }
   return []

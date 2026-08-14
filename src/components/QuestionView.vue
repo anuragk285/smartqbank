@@ -149,14 +149,26 @@
           <header class="dark:border-surface-700 bg-white z-30 mx-auto transition-all duration-300 ease-in-out"
           :class="isMobile ? 'w-full' : (open ? 'w-full max-w-[85ch]' : 'w-full max-w-[95ch]')">
           
-          <div class="flex flex-col gap-2 ml-3 mt-3">
-            <h1 class="font-inter font-bold text-2xl text-primary-dark tracking-wide ">
-              {{ selectedSubject?.name }}
-            </h1>
-            <div class="flex gap-2 flex-wrap">
-              <h3 class=" text-gray-500">#{{ selectedSubject?.subject_code }}</h3>
-              <span>⋅</span>
-              <h3 class="text-tertiary">{{ total }} questions.</h3>
+          <div class="sm:flex sm:justify-between items-center ">
+            <div class="flex flex-col gap-2 ml-3 mt-3">
+              <h1 class="font-bold text-2xl text-primary-dark tracking-wide ">
+                {{ selectedSubject?.name }}
+              </h1>
+              <div class="flex gap-2 flex-wrap">
+                <h3 class=" text-gray-500">#{{ selectedSubject?.subject_code }}</h3>
+                <span>⋅</span>
+                <h3 class="text-tertiary">{{ total }} questions.</h3>
+              </div>
+            </div>
+            <div class="shrink-0 sm:me-2">
+              <!-- <Button severity="secondary" size="small" class="flex items-center gap-2 border-gray-300 bg-gray-50 mt-4 hover:bg-gray-100">
+                <span class="text-primary">Importatnt Topics</span>
+              </Button> -->
+              <Button class="flex items-center gap-2 border-gray-300 bg-gray-50 mt-4 hover:bg-gray-100"
+                @click="goToQucikPrep()">
+                <span class="pi pi-book text-primary"></span>
+                <span class="text-primary">Important Topics</span>
+              </Button>
             </div>
           </div>
         </header>
@@ -288,7 +300,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick} from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useSubjectStore } from '@/stores/subject'
 import { storeToRefs } from 'pinia'
 
@@ -306,6 +318,7 @@ import MultiSelect  from 'primevue/multiselect'
 import QuestionCard from './QuestionCard.vue'
 
 const route = useRoute()
+const router = useRouter()
 const subjectStore = useSubjectStore()
 
 const first = ref(0)
@@ -543,11 +556,11 @@ const convertToTree = (topicsList) => {
         key: unitKey,
         label: `Unit ${topic.unit}`,
         selectable: false,
-        children: []
+        items: []
       })
     }
 
-    unitsMap.get(unitKey).children.push({
+    unitsMap.get(unitKey).items.push({
       key: topic.id,
       label: topic.topic,
       value: topic,
@@ -563,6 +576,11 @@ watch([sortBy, sortOrder], () => {
     if (resettingFilters.value) return
     fetchQuestions()
 })
+
+function goToQucikPrep(){
+  router.push({name: 'quick-prep', prams: {subjectId: subjectId}})
+}
+
 </script>
 
 <style scoped>
@@ -596,5 +614,10 @@ watch([sortBy, sortOrder], () => {
 }
 .p-button .p-ink {
   background: rgba(255, 255, 255, 0.35) !important;
+}
+@keyframes gradientLoop {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
 }
 </style>
