@@ -9,7 +9,7 @@
             <h4 class="text-sm text-gray-500 hover:text-tertiary">Unit {{ unit }}</h4>
             <span class="text-xl font-medium mx-1">⋅</span>
             <h4 class="text-sm text-gray-500 hover:text-tertiary">{{ year }}</h4>
-            <Button unstyled class="text-primary text-sm hover:underline cursor-pointer select-none touch-manipulation rounded-2xl mobile-tap-clean px-2 py-[0.5]" @click="$emit('selectedTopic', topic_id)"><i>#{{ topic }}</i></Button>
+            <Button v-if="topic" unstyled class="text-primary text-sm hover:underline cursor-pointer select-none touch-manipulation rounded-2xl mobile-tap-clean px-2 py-[0.5]" @click="$emit('selectedTopic', topic_id)"><i>#{{ topic }}</i></Button>
           </div>
           <div class="flex gap-3 flex-wrap">
             <Badge severity="secondary" class="font-inter text-xs text-tertiary rounded-md px-1.25 py-1 flex gap-1 items-center"><span class="text-sm">{{ marks }}</span> marks</Badge>
