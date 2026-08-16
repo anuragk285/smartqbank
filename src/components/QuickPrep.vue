@@ -2,21 +2,14 @@
     <div class="">
         <div class="flex flex-col gap-3 mx-auto my-6"
             :class="isMobile ? 'w-full' : (open ? 'w-full max-w-[95ch]' : 'w-full max-w-[105ch]')">
-            <div class="flex sm:flex-row flex-col justify-between">
+            <div class="flex flex-row flex-wrap justify-between">
                 <div>
                     <h2 class="ms-4 text-2xl tracking-wide text-primary font-bold">Important Topics</h2>
                     <h4 class="ms-4 text-gray-500 text-sm tracking-wide">{{ selectedSubject?.name }} ⋅ #{{ selectedSubject?.subject_code }}</h4>
                 </div>
-                <div>
-                    <label class="inline-flex items-center cursor-pointer">
-                        <input type="checkbox" value="" class="sr-only peer"/>
-                        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Check similar Topics over previous regulations</span>
-                        <div class="relative w-11 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                    </label>
-                </div>
+                <SelectButton class="mx-4 mt-4" size="small" v-model="selectedRegulation" :options="regulationOptions" optionLabel="label" optionValue="value" ariaLabelledby="basic" />
             </div>
             <div>
-                <!-- column header labels -->
                 <div class="overflow-x-auto [-webkit-overflow-scrolling:touch]">
                     <div class="grid grid-cols-24 gap-x-1 sm:gap-x-2 px-4 py-2 font-semibold text-tertiary text-sm min-w-140px">
                         <span class="col-span-2">RANK</span>
@@ -25,8 +18,21 @@
                         <span class="col-span-5">Avg marks per paper</span>
                     </div>
                 </div>
-
-                <Accordion v-model:value="activePanel" class="">
+                <div v-if="loading">
+                    <Accordion>
+                        <AccordionPanel v-for="n in 10" :key="n">
+                            <AccordionHeader>
+                                <div class="grid grid-cols-24 gap-2 w-full items-center pr-4">
+                                    <Skeleton width="1rem" height="1rem" class="col-span-2 bg-gray-200"></Skeleton>
+                                    <Skeleton width="8rem" height="1rem" class="col-span-11 bg-gray-200"></Skeleton>
+                                    <Skeleton width="3rem" height="1rem" class="col-span-6 mx-auto bg-gray-200"></Skeleton>
+                                    <Skeleton width="4rem" height="1rem" class="col-span-5 mx-auto bg-gray-200"></Skeleton>
+                                </div>
+                            </AccordionHeader>
+                        </AccordionPanel>
+                    </Accordion>
+                </div>
+                <Accordion v-else v-model:value="activePanel">
                     <AccordionPanel v-for="(topic, i) in topics" :key="i" :value="i">
                         <AccordionHeader class="hover:bg-gray-100 overflow-x-scroll [-webkit-overflow-scrolling:touch]">
                             <div class="grid grid-cols-24 gap-2 w-full items-center pr-4">
@@ -39,17 +45,42 @@
                                     </div>
                                 </div>
                                 <div class="col-span-5 text-sm text-gray-600 hover:text-primary-dark flex justify-center items-center gap-2">
-                                <span>{{topic.avg_marks_per_paper}} / 60</span><ProgressBar :value="(topic.avg_marks_per_paper / 60)*100" :showValue="false" :pt="{root: 'h-2.5! w-15! rounded', value: 'bg-secondary'}"></ProgressBar>
+                                    <span>{{topic.avg_marks_per_paper}} / 60</span><ProgressBar :value="(topic.avg_marks_per_paper / 60)*100" :showValue="false" :pt="{root: 'h-2.5! w-15! rounded', value: 'bg-secondary'}"></ProgressBar>
                                 </div>
                             </div>
                         </AccordionHeader>
                         
                         <AccordionContent class="">
                             <div class="">
-                                <p v-if="loadingTopics[topic.topic]" class="text-gray-500 py-2">Loading questions...</p>
+                                <div v-if="loadingTopics[topic.topic]" class="py-2">
+                                    <div
+                                        v-for="n in 2"
+                                        :key="n"
+                                        class="mx-auto my-2 px-4 py-6 min-h-32 border border-gray-300 rounded-xl flex flex-col gap-3 justify-between"
+                                        :class="isMobile ? 'w-full' : open ? 'w-[85ch]' : 'w-[95ch]'"
+                                    >
+                                        <div class="flex flex-wrap justify-between items-center gap-3">
+                                        <div class="flex gap-2 items-center">
+                                            <Skeleton width="4rem" height="1rem" class="bg-gray-200" />
+                                            <span class="text-gray-300">⋅</span>
+                                            <Skeleton width="4rem" height="1rem" class="bg-gray-200" />
+                                            <span class="text-gray-300">⋅</span>
+                                            <Skeleton width="10rem" height="1rem" class="bg-gray-200" />
+                                        </div>
+                                        <div class="flex gap-3">
+                                            <Skeleton width="3rem" height="1.25rem" class="rounded-md bg-gray-200" />
+                                            <Skeleton width="3rem" height="1.25rem" class="rounded-md bg-gray-200" />
+                                        </div>
+                                        </div>
+                                        <div class="flex flex-col gap-2 mx-2 mb-1">
+                                        <Skeleton width="100%" height="1.25rem" class="bg-gray-200" />
+                                        <Skeleton width="4rem" height="1rem" class="bg-gray-200" />
+                                        </div>
+                                    </div>            
+                                </div>
                                 <QuestionCard
                                     class="py-2 mx-auto"
-                                    v-for="q in topicQuestions[topic.topic]"
+                                    v-for="q in topicQuestions[topic.topic]?.[selectedRegulation]"
                                     :key="q.id"
                                     :question_id="q.id"
                                     :question_text="q.text"
@@ -63,7 +94,7 @@
                                     :open="open"
                                 />
 
-                                <p v-if="topicQuestions[topic.topic] && topicQuestions[topic.topic].length === 0" class="text-surface-500 py-2">
+                                <p v-if="topicQuestions[topic.topic]?.[selectedRegulation] && topicQuestions[topic.topic]?.[selectedRegulation].length === 0" class="text-surface-500 py-2">
                                     No questions found for this topic.
                                 </p>
                             </div>
@@ -84,6 +115,9 @@
     import AccordionContent from 'primevue/accordioncontent';
     import AccordionHeader from 'primevue/accordionheader';
     import ProgressBar from 'primevue/progressbar';
+    //import ToggleSwitch from 'primevue/toggleswitch';
+    import SelectButton from 'primevue/selectbutton';
+    import Skeleton from 'primevue/skeleton';
     // import DataTable from 'primevue/datatable';
     // import Column from 'primevue/column';
     import { useRoute } from 'vue-router';
@@ -96,7 +130,6 @@
     const subjectStore = useSubjectStore()
     const { selectedSubject } = storeToRefs(subjectStore)
     const subjectId = computed(() => Number(route.params.subjectId))
-    //const selectedTopic = ref('')
     const topics = ref([])
     const checkInitialMobile = () => typeof window !== 'undefined' && window.innerWidth < 1024
     const isMobile = ref(checkInitialMobile())
@@ -105,42 +138,33 @@
     const loadingTopics = ref({})
     const papers_analyzed = ref(0);
     const activePanel = ref(null)
-
-    //const questions = ref([]);
-    //const groupedTopics = computed(() => groupTopicsByUnit(topics.value));
-
-    // async function onTopicSelect(e) {
-    //     const res = await fetch(`/api/topics/${e.value}/questions`);
-    //     questions.value = await res.json();
-    // }
-
+    const currentRegulation = ref(subjectStore.filters.regulation_code)
+    const selectedRegulation = ref('all');
+    const regulationOptions = ref([
+        {label: currentRegulation, value: currentRegulation},
+        {label: 'ALL', value: 'all'}
+    ])
     onMounted(async () => {
         loading.value = true
         await loadTopics()
         loading.value = false
     });
 
-    // function groupTopicsByUnit(topics) {
-    //     const groups = {};
-    //     for (const t of topics) {
-    //         if (!groups[t.unit_number]) {
-    //         groups[t.unit_number] = { label: `Unit ${t.unit_number}`, unit: t.unit_number, items: [] };
-    //         }
-    //         groups[t.unit_number].items.push(t);
-    //     }
-    //     return Object.values(groups).sort((a, b) => a.unit - b.unit);  // Unit 1, Unit 2... in order
-    //     }
-
     watch(activePanel, (newIndex) => {
         if (newIndex === null || newIndex === undefined) return
         const topic = topics.value[newIndex]
         if (topic) showQuestions(topic)
     })
+    watch(selectedRegulation, async (newValue) => {
+        if(newValue === null || newValue === undefined) return
+        await loadTopics()
+    })
     const loadTopics = async () => {
         loading.value = true
         const numericSubjectId = subjectId.value
         try {
-            const response = await fetch(`${baseUrl}/api/topics/${numericSubjectId}/important-topics`)
+            const params = new URLSearchParams({crossRegulation: selectedRegulation.value === 'all' ? true : false})
+            const response = await fetch(`${baseUrl}/api/topics/${numericSubjectId}/important-topics?${params}`)
             if (response.status === 404) {
             topics.value = []
             } else if (!response.ok) {
@@ -155,51 +179,45 @@
             topics.value = []
         }
         loading.value = false
-        // Map the response to PrimeVue MenuItem format
-        // menuItems.value = topics.value.map(item => ({
-        //     label: item.topic,              // PrimeVue needs this for the text
-        //     icon: 'pi pi-book',             // Optional: Add a PrimeIcon
-        //     data: item,                     // Store the original backend object here
-        //     command: () => {
-        //         console.log(`You clicked ${item.topic} which has ${item.total_marks} marks.`);
-        //     }
-        // }));
     };
+
     async function loadSelectedTopicQuestions(topic) {
-    const topicKey = topic.topic; // Unique identifier for the topic
+        const topicKey = topic.topic;
         loadingTopics.value[topicKey] = true;
-
-    const params = new URLSearchParams();
-    if (Array.isArray(topic.topic_ids)) {
-        topic.topic_ids.forEach(id => {
-            params.append('topic_ids', id);
-        });
-    }
-    
-    try {
-        const numericSubjectId = subjectId.value; 
-        const response = await fetch(`${baseUrl}/api/subjects/${numericSubjectId}/topic-questions?${params}`);
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error("RAW FastAPI 422 Error Response:", errorText);
-            throw new Error(`HTTP error! status: ${response.status}`);
+        const params = new URLSearchParams();
+        if(!topicQuestions.value[topicKey]){
+            topicQuestions.value[topicKey] = {}
         }
-        
-        const data = await response.json();
-        // Save the questions specifically for this topic key
-
-        topicQuestions.value[topicKey] = data; 
-    } catch (error) {
-        console.error("Failed to load topic questions:", error);
-    } finally {
-        loadingTopics.value[topicKey] = false;
+        if (Array.isArray(topic.topic_ids)) {
+            topic.topic_ids.forEach(id => {
+                params.append('topic_ids', id);
+            });
+        }
+        try {
+            const numericSubjectId = subjectId.value; 
+            const response = await fetch(`${baseUrl}/api/subjects/${numericSubjectId}/topic-questions?${params}`);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("RAW FastAPI 422 Error Response:", errorText);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            topicQuestions.value[topicKey] = {
+            ...topicQuestions.value[topicKey],
+            [selectedRegulation.value]: data
+        }; 
+        } catch (error) {
+            console.error("Failed to load topic questions:", error);
+        } finally {
+            loadingTopics.value[topicKey] = false;
+        }
     }
-}
 
 async function showQuestions(topic) {
     // Optional optimization: only fetch if we haven't already fetched for this topic
-    if (!topicQuestions.value[topic.topic]) {
+    if (!topicQuestions.value[topic.topic]?.[selectedRegulation.value]) {
         await loadSelectedTopicQuestions(topic);
     }
 }

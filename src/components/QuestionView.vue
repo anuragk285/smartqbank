@@ -58,12 +58,6 @@
 
                 <template #option="slotProps">
                   <div class="min-w-0 w-full py-0.5">
-                    <!-- <span 
-                      v-if="slotProps.option.unit" 
-                      class="text-xs text-muted-color bg-surface-100 dark:bg-surface-800 px-1.5 py-0.5 rounded-full shrink-0 mt-0.5"
-                    >
-                      U{{ slotProps.option.unit }}
-                    </span> -->
                     <span class="text-xs whitespace-normal wrap-break min-w-0 flex-1 leading-snug">
                       <i>{{ slotProps.option.label }}</i>
                     </span>
@@ -161,9 +155,6 @@
               </div>
             </div>
             <div class="shrink-0 sm:me-2">
-              <!-- <Button severity="secondary" size="small" class="flex items-center gap-2 border-gray-300 bg-gray-50 mt-4 hover:bg-gray-100">
-                <span class="text-primary">Importatnt Topics</span>
-              </Button> -->
               <Button class="flex items-center gap-2 border-gray-300 bg-gray-50 mt-4 ms-4 hover:bg-gray-100"
                 @click="goToQucikPrep()">
                 <span class="pi pi-book text-primary"></span>
