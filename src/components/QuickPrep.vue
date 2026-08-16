@@ -1,68 +1,89 @@
 <template>
     <div class="">
         <div class="flex flex-col gap-3 mx-auto my-6"
-    :class="isMobile ? 'w-full' : (open ? 'w-full max-w-[95ch]' : 'w-full max-w-[105ch]')">
-    <h2 class="ms-4 text-2xl tracking-wide text-primary font-bold">Important Topics</h2>
-    <h4 class="ms-4 text-gray-500 text-sm tracking-wide">{{ selectedSubject?.name }} ⋅ #{{ selectedSubject?.subject_code }}</h4>
-    
-    <div>
-        <div class="grid grid-cols-12 gap-1 sm:gap-2 px-4 py-2 font-semibold text-tertiary text-sm">
-            <span class="col-span-6">Topic Name</span>
-            <span class="col-span-2">Years Appeared</span>
-            <span class="col-span-2">Question Count</span>
-            <span class="col-span-2">Avg marks per paper</span>
+            :class="isMobile ? 'w-full' : (open ? 'w-full max-w-[95ch]' : 'w-full max-w-[105ch]')">
+            <div class="flex sm:flex-row flex-col justify-between">
+                <div>
+                    <h2 class="ms-4 text-2xl tracking-wide text-primary font-bold">Important Topics</h2>
+                    <h4 class="ms-4 text-gray-500 text-sm tracking-wide">{{ selectedSubject?.name }} ⋅ #{{ selectedSubject?.subject_code }}</h4>
+                </div>
+                <div>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" value="" class="sr-only peer"/>
+                        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Check similar Topics over previous regulations</span>
+                        <div class="relative w-11 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                </div>
+            </div>
+            <div>
+                <!-- column header labels -->
+                <div class="overflow-x-auto [-webkit-overflow-scrolling:touch]">
+                    <div class="grid grid-cols-24 gap-x-1 sm:gap-x-2 px-4 py-2 font-semibold text-tertiary text-sm min-w-140px">
+                        <span class="col-span-2">RANK</span>
+                        <span class="col-span-11 ms-4 sm:m-0">Topic Name</span>
+                        <span class="col-span-6 text-center">Consistency</span>
+                        <span class="col-span-5">Avg marks per paper</span>
+                    </div>
+                </div>
+
+                <Accordion v-model:value="activePanel" class="">
+                    <AccordionPanel v-for="(topic, i) in topics" :key="i" :value="i">
+                        <AccordionHeader class="hover:bg-gray-100 overflow-x-scroll [-webkit-overflow-scrolling:touch]">
+                            <div class="grid grid-cols-24 gap-2 w-full items-center pr-4">
+                                <span class="col-span-2 text-tertiary font-medium text-start">{{ i+1 }}</span>
+                                <span class="col-span-11 hover:text-primary-dark font-medium text-start truncate">{{ topic.topic }}</span>
+                                <div class="col-span-6 flex items-center justify-center">
+                                    <div class="flex gap-1.5 items-center sm:ms-6 h-full">
+                                        <div class="w-2 h-2 rounded-full bg-gray-700" v-for="y in Number(topic.years_appeared || 0)" :key="'filled-'+y"></div>
+                                        <div class="w-2 h-2 rounded-full bg-gray-300" v-for="y in Number(papers_analyzed - (topic.years_appeared || 0))" :key="'empty-'+y"></div>
+                                    </div>
+                                </div>
+                                <div class="col-span-5 text-sm text-gray-600 hover:text-primary-dark flex justify-center items-center gap-2">
+                                <span>{{topic.avg_marks_per_paper}} / 60</span><ProgressBar :value="(topic.avg_marks_per_paper / 60)*100" :showValue="false" :pt="{root: 'h-2.5! w-15! rounded', value: 'bg-secondary'}"></ProgressBar>
+                                </div>
+                            </div>
+                        </AccordionHeader>
+                        
+                        <AccordionContent class="">
+                            <div class="">
+                                <p v-if="loadingTopics[topic.topic]" class="text-gray-500 py-2">Loading questions...</p>
+                                <QuestionCard
+                                    class="py-2 mx-auto"
+                                    v-for="q in topicQuestions[topic.topic]"
+                                    :key="q.id"
+                                    :question_id="q.id"
+                                    :question_text="q.text"
+                                    :difficulty="q.difficulty"
+                                    :marks="q.marks"
+                                    :unit="q.unit"
+                                    :year="q.year"
+                                    :image_urls="q.image_urls"
+                                    :topic="q.topic"
+                                    :isMobile="isMobile"
+                                    :open="open"
+                                />
+
+                                <p v-if="topicQuestions[topic.topic] && topicQuestions[topic.topic].length === 0" class="text-surface-500 py-2">
+                                    No questions found for this topic.
+                                </p>
+                            </div>
+                        </AccordionContent>
+                    </AccordionPanel>
+                </Accordion>        
+            </div>
         </div>
-
-        <Accordion>
-            <AccordionPanel v-for="(topic, i) in topics" :key="i" :value="i">
-                <AccordionHeader @click="showQuestions(topic)" class="hover:bg-gray-100">
-                    <div class="grid grid-cols-12 gap-2 w-full items-center pr-4">
-                        <span class="col-span-6 hover:text-primary-dark font-medium text-start">{{ topic.topic }}</span>
-                        <span class="col-span-2 text-sm text-gray-500 hover:text-primary-dark text-center">{{ topic.years_appeared || '0' }} / {{ papers_analyzed }}</span>
-                        <span class="col-span-2 text-sm text-gray-500 hover:text-primary-dark text-center">{{ topic.question_count || '-' }}</span>
-                        <span class="col-span-2 text-sm text-gray-500 hover:text-primary-dark text-center">{{ topic.avg_marks_per_paper || '-' }}</span>
-                    </div>
-                </AccordionHeader>
-                
-                <AccordionContent class="">
-                    <div>
-                        <p v-if="loadingTopics[topic.topic]" class="text-gray-500 py-2">Loading questions...</p>
-                        <QuestionCard
-                            class="sm:p-2 py-2 mx-auto"
-                            v-for="q in topicQuestions[topic.topic]"
-                            :key="q.id"
-                            :question_id="q.id"
-                            :question_text="q.text"
-                            :difficulty="q.difficulty"
-                            :marks="q.marks"
-                            :unit="q.unit"
-                            :year="q.year"
-                            :image_urls="q.image_urls"
-                            :topic="q.topic"
-                            :isMobile="isMobile"
-                            :open="open"
-                        />
-
-                        <p v-if="topicQuestions[topic.topic] && topicQuestions[topic.topic].length === 0" class="text-surface-500 py-2">
-                            No questions found for this topic.
-                        </p>
-                    </div>
-                </AccordionContent>
-            </AccordionPanel>
-        </Accordion>
-    </div>
-</div>
     </div>
 </template>
 
 <script setup>
     import { useSubjectStore } from '@/stores/subject';
     import { storeToRefs } from 'pinia'
-    import { ref, onMounted, computed } from 'vue';
+    import { ref, onMounted, computed, watch } from 'vue';
     import Accordion from 'primevue/accordion';
     import AccordionPanel from 'primevue/accordionpanel';
     import AccordionContent from 'primevue/accordioncontent';
     import AccordionHeader from 'primevue/accordionheader';
+    import ProgressBar from 'primevue/progressbar';
     // import DataTable from 'primevue/datatable';
     // import Column from 'primevue/column';
     import { useRoute } from 'vue-router';
@@ -83,6 +104,8 @@
     const topicQuestions = ref({});
     const loadingTopics = ref({})
     const papers_analyzed = ref(0);
+    const activePanel = ref(null)
+
     //const questions = ref([]);
     //const groupedTopics = computed(() => groupTopicsByUnit(topics.value));
 
@@ -108,6 +131,11 @@
     //     return Object.values(groups).sort((a, b) => a.unit - b.unit);  // Unit 1, Unit 2... in order
     //     }
 
+    watch(activePanel, (newIndex) => {
+        if (newIndex === null || newIndex === undefined) return
+        const topic = topics.value[newIndex]
+        if (topic) showQuestions(topic)
+    })
     const loadTopics = async () => {
         loading.value = true
         const numericSubjectId = subjectId.value

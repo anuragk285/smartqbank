@@ -164,7 +164,7 @@
               <!-- <Button severity="secondary" size="small" class="flex items-center gap-2 border-gray-300 bg-gray-50 mt-4 hover:bg-gray-100">
                 <span class="text-primary">Importatnt Topics</span>
               </Button> -->
-              <Button class="flex items-center gap-2 border-gray-300 bg-gray-50 mt-4 hover:bg-gray-100"
+              <Button class="flex items-center gap-2 border-gray-300 bg-gray-50 mt-4 ms-4 hover:bg-gray-100"
                 @click="goToQucikPrep()">
                 <span class="pi pi-book text-primary"></span>
                 <span class="text-primary">Important Topics</span>

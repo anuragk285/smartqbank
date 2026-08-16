@@ -1,8 +1,8 @@
 <template>
   <div :class="isMobile ? 'w-full' : (open ? 'w-full max-w-[85ch]' : 'w-full max-w-[95ch]')" class="transition-all duration-300 ease-in-out">
-    <Card class="sm:px-3 px-[0.5] py-2 border border-gray-300">
+    <Card class="sm:px-2 px-[0.5] py-1.5 border border-gray-300 rounded-lg">
       <template #header>
-        <div class="flex flex-wrap justify-between items-center mt-4 mx-5 gap-3">
+        <div class="flex flex-wrap justify-between items-center mt-2 mx-3 gap-2">
           <div class="flex sm:gap-2 gap-1 flex-wrap items-center">
             <span v-if="isMobile" class="font-light text-sm hover:text-tertiary">Q{{ question_id }}</span>
             <span v-if="isMobile" class="text-xl font-medium mx-1">⋅</span>
@@ -33,23 +33,23 @@
 </template>
 
 <script setup>
-import Card from 'primevue/card'
-import Badge from 'primevue/badge'
-import Button from 'primevue/button'
+  import Card from 'primevue/card'
+  import Badge from 'primevue/badge'
+  import Button from 'primevue/button'
 
-defineProps(['question_id', 'question_text', 'unit', 'difficulty', 'year', 'marks', 'image_urls', 'topic', 'topic_id', 'isMobile', 'open'])
-const difficultyClasses = {
-  Easy: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  Medium: 'bg-amber-50 text-amber-600 border-amber-200',
-  Hard: 'bg-rose-50 text-rose-700 border-rose-200',
-}
+  defineProps(['question_id', 'question_text', 'unit', 'difficulty', 'year', 'marks', 'image_urls', 'topic', 'topic_id', 'isMobile', 'open'])
+  const difficultyClasses = {
+    Easy: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    Medium: 'bg-amber-50 text-amber-600 border-amber-200',
+    Hard: 'bg-rose-50 text-rose-700 border-rose-200',
+  }
 </script>
 
 <style scoped>
-.mobile-tap-clean {
-  -webkit-tap-highlight-color: transparent;
-}
-.p-button .p-ink {
-  background: rgba(255, 255, 255, 0.35) !important;
-}
+  .mobile-tap-clean {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .p-button .p-ink {
+    background: rgba(255, 255, 255, 0.35) !important;
+  }
 </style>
