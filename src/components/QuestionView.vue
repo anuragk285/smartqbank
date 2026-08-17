@@ -155,11 +155,13 @@
               </div>
             </div>
             <div class="shrink-0 sm:me-2">
-              <Button class="flex items-center gap-2 border-gray-300 bg-gray-50 mt-4 ms-4 hover:bg-gray-100"
-                @click="goToQucikPrep()">
-                <span class="pi pi-book text-primary"></span>
-                <span class="text-primary">Important Topics</span>
-              </Button>
+              <Button class="group flex items-center gap-2 border-gray-300 bg-gray-50 mt-4 ms-4 hover:bg-gray-100"
+                    @click="goToQucikPrep()">
+              <span class="pi pi-book text-primary"></span>
+              <span class="font-bold text-glow" data-text="Important Topics">
+                Important Topics
+              </span>
+            </Button>
             </div>
           </div>
         </header>
