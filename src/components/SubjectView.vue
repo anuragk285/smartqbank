@@ -6,7 +6,6 @@
         @click="closeSidebar()" 
         class="fixed inset-0 bg-black/40 z-50 lg:hidden"
       ></div>
-
       <aside
         :class="[
           'bg-white border-gray-200 transition-all duration-300 z-50 flex flex-col justify-between overflow-hidden',

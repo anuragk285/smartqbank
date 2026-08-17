@@ -9,7 +9,7 @@
           <span class="px-2.5 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-sky-700 bg-sky-50 border border-sky-200 rounded-full shadow-sm cursor-default">Beta</span>
         </div>
       </div>  
-      <div class="">
+      <div>
         <Breadcrumb
           v-if="route.name !== 'subjects'"
           :home="home"
@@ -38,6 +38,7 @@
     </div>
   </header>
 </template>
+
 <script setup>
 import Breadcrumb from 'primevue/breadcrumb'
 import { computed } from 'vue'
@@ -51,7 +52,7 @@ const subjectStore = useSubjectStore()
 const { selectedSubject } = storeToRefs(subjectStore)
 
 const breadcrumbItems = computed(() => {
-  if (route.name === 'questions' || route.name == 'quick-prep' && selectedSubject.value) {
+  if (route.name === 'questions' || route.name == 'important-topics' && selectedSubject.value) {
     const items = []
     const sub = selectedSubject.value
     if (sub.department) {
@@ -62,9 +63,10 @@ const breadcrumbItems = computed(() => {
       })
     }
     if (sub.name) items.push({ label: selectedSubject.value.name })
-    if(route.name == 'quick-prep') items.push({label: 'Quick Prep'})
+    if(route.name == 'important-topics') items.push({label: 'Important Topics'})
     return items
   }
   return []
 })
+
 </script>

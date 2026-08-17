@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import SubjectView from '@/components/SubjectView.vue'
 import QuestionView from '@/components/QuestionView.vue'
-import QuickPrep from '@/components/QuickPrep.vue'
+import ImportantTopics from '@/components/ImportantTopics.vue'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -11,9 +11,9 @@ const router = createRouter({
       name: 'questions',
       component: QuestionView
     },
-    { path: '/subjects/:subjectId/questions/quick-prep',
-      name: 'quick-prep',
-      component: QuickPrep
+    { path: '/subjects/:subjectId/questions/important-topics',
+      name: 'important-topics',
+      component: ImportantTopics
     }
   ]
 })
