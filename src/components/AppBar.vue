@@ -1,19 +1,20 @@
 <template>
   <header class="px-4 md:px-4 py-3 z-40 bg-white border-b border-gray-200 shadow-sm">
-    <div class="flex flex-wrap flex-row items-center gap-x-12 gap-y-3">
-      <div class="flex items-center gap-1">
-        <router-link to="/">
-          <span class="text-primary sm:text-3xl text-2xl font-bold tracking-tight">SmartQBank</span>
-        </router-link>
-        <div class="flex items-center">
-          <span class="px-2.5 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-sky-700 bg-sky-50 border border-sky-200 rounded-full shadow-sm cursor-default">Beta</span>
-        </div>
-      </div>  
-      <div>
+    <div class="flex flex-wrap flex-row items-center justify-between gap-x-12 gap-y-3">
+      <div class="flex flex-wrap gap-y-3 gap-x-5 items-center">
+        <div class="flex items-center gap-1 ">
+          <router-link to="/">
+            <span class="text-primary sm:text-3xl text-2xl font-bold tracking-tight">SmartQBank</span>
+          </router-link>
+          <div class="flex items-center">
+            <span class="px-2.5 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-sky-700 bg-sky-50 border border-sky-200 rounded-full shadow-sm cursor-default">Beta</span>
+          </div>
+        </div>  
         <Breadcrumb
-          :home="home"
-          :model="breadcrumbItems"
-          class="p-0! bg-transparent! border-0"
+        v-if="route.name !== 'subjects'"
+        :home="home"
+        :model="breadcrumbItems"
+        class="p-0! bg-transparent! border-0"
         >
           <template #item="{ item, props }">
             <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
@@ -34,13 +35,13 @@
           </template>
         </Breadcrumb>
       </div>
-      <div v-if="route.name!=='roadmap'" class="ml-auto">
+      <div v-if="route.name!=='roadmap'" class="">
         <Button class="group flex items-center gap-2 border-gray-300 bg-gray-50 hover:bg-gray-100"
             @click="goToRoadMapPage">
-              <span class="font-bold text-glow" data-text="Important Topics">
-                Road map
-              </span>
-            </Button>
+          <span class="font-bold text-glow" data-text="Important Topics">
+            Road map
+          </span>
+        </Button>
       </div>
     </div>
   </header>

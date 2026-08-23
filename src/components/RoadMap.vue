@@ -92,17 +92,16 @@
           </div>
         </aside>
   
-        <!-- Main Content -->
         <main
           class="flex-1 min-w-0 transition-all duration-300 ease-in-out"
-          :class="isMobile ? 'w-full px-4' : open ? 'px-6' : 'px-[20%]'"
+          :class="isMobile ? 'w-full ' : open ? 'px-6' : 'px-[20%]'"
         >
           <header class="mb-3 z-30 mx-auto max-w-6xl">
-            <Button severity="secondary" text size="small" @click="open = !open" class="p-ripple flex items-center gap-2 border-gray-300 ms-1 mt-4 bg-white">
+            <Button severity="secondary" text size="small" @click="open = !open" class="p-ripple flex items-center gap-2 border-gray-300 ms-1 mt-4 ml-5 bg-white">
               <h4 class="text-sky-700 text-sm">FILTERS</h4>
               <span class="pi pi-filter text-sky-700 text-sm"></span>
             </Button>
-            <div class="flex flex-col gap-2 ml-3 mt-3">
+            <div class="flex flex-col gap-2 ml-6 mt-3">
               <h1 class="font-bold text-2xl text-primary-dark tracking-wide">{{ headerSubject?.name }}</h1>
               <h3 class="text-gray-500">#{{ headerSubject?.subject_code }}</h3>
             </div>
@@ -133,7 +132,7 @@
                 <ProgressBar :value="progressPercentage" :showValue="true" style="height: 12px" />
               </div>
   
-              <div class="space-y-10 flex flex-col gap-y-24">
+              <div class="space-y-10 flex flex-col gap-y-12">
                 <div 
                   v-for="(unit, i) in units" 
                   :key="unit.id" 
@@ -149,8 +148,56 @@
                       {{ getUnitCompletedCount(unit) }} / {{ unit.topics.length }} Done
                     </span>
                   </div>
+                  <div v-if="isMobile">
+                    <div 
+                        v-for="topic in unit.topics" :key="topic.id"
+                        class="py-5 min-w-70 rounded-lg border transition-all duration-200 my-4 shadow-sm"
+                        :class="[
+                          topic.completed 
+                            ? 'bg-emerald-50/60 border-emerald-300 shadow-emerald-50' 
+                            : 'bg-white border-gray-200 hover:border-primary-400 hover:shadow-md'
+                        ]"
+                      >
+                        <div class="flex items-start gap-3 px-3">
+                          <Checkbox 
+                            v-model="topic.completed" 
+                            :binary="true" 
+                            :inputId="String(topic.id)"
+                            class="mt-0.5"
+                          />
+                          <div class="flex justify-between flex-1">
+                            <label 
+                              :for="String(topic.id)" 
+                              class="text-md font-semibold cursor-pointer select-none text-left transition-colors"
+                              :class="topic.completed ? 'line-through text-gray-400' : 'text-gray-800'"
+                            >
+                              {{ topic.name }}
+                            </label>
+                            <Button @click="goToQuestionsPage(topic.id)" unstyled class="group flex gap-1 pe-2 hover:text-tertiary flex-nowrap cursor-pointer text-[12px] items-center rounded-xl px-2">
+                              questions
+                              <span class="pi pi-arrow-right text-xs group-hover:translate-x-1.25 transition-transform duration-300"></span>
+                            </Button>
+                          </div>
+                        </div>
   
-                  <Timeline :value="unit.topics" :align="isMobile ? ((i%2 === 0) ? 'left' : 'right'): 'alternate'" class="custom-timeline">
+                        <div class="flex justify-between gap-4 mt-3 mx-5">
+                          <button 
+                            @click="openAiDescription(topic)"
+                            class="flex items-center gap-1 text-xs font-medium text-sky-700 hover:text-sky-900 cursor-pointer"
+                          >
+                            <i class="pi pi-sparkles text-xs"></i> AI description
+                          </button>
+                          <button 
+                            @click="searchGoogle(topic.name)"
+                            class="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+                          >
+                            <i class="pi pi-search text-xs"></i> Google
+                          </button>
+                        </div>
+                      </div>
+                  </div>
+  
+                  <Timeline v-else :value="unit.topics" :align="isMobile ? ((i%2 === 0) ? 'left' : 'right'): 'alternate'" class="custom-timeline">
                     <template #content="slotProps">
                       <div 
                         class="py-4 min-w-70 rounded-lg border transition-all duration-200 my-2 shadow-sm"
@@ -206,64 +253,99 @@
               </div>
             </div>
           </div>
-        </main>
-  
+        </main>  
         <Dialog 
           v-model:visible="aiDialogVisible" 
-          :header="activeTopic?.name" 
           modal
           :style="{ width: '90vw', maxWidth: '42rem' }"
         >
-          <div v-if="aiLoading" class="flex flex-col gap-3 py-2">
-            <Skeleton height="1rem" width="90%" />
-            <Skeleton height="1rem" width="75%" />
-            <Skeleton height="1rem" width="60%" />
-          </div>
-  
-          <div v-else-if="aiError" class="text-sm text-red-600 py-2">
-            Couldn't load this right now.
-            <button @click="fetchAiDescription(activeTopic)" class="underline font-semibold ml-1">Retry</button>
-          </div>
-  
-          <div v-else-if="aiData" class="flex flex-col gap-4 py-2">
-            <p class="text-sm text-gray-700 leading-relaxed">{{ aiData.summary }}</p>
-  
-            <ul v-if="aiData.key_points?.length" class="flex flex-col gap-2">
-              <li v-for="(point, i) in aiData.key_points" :key="i" class="flex items-start gap-2 text-sm text-gray-700">
-                <i class="pi pi-check text-emerald-600 text-xs mt-1"></i>
-                <span>{{ point }}</span>
-              </li>
-            </ul>
-  
-            <div v-if="aiData.table" class="overflow-x-auto">
-              <table class="w-full text-xs border-collapse">
-                <thead>
-                  <tr class="border-b border-gray-200">
-                    <th v-for="(col, i) in aiData.table.columns" :key="i" class="text-left py-1.5 pr-3 text-gray-500 font-semibold">{{ col }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(row, i) in aiData.table.rows" :key="i" class="border-b border-gray-100">
-                    <td v-for="(cell, j) in row" :key="j" class="py-1.5 pr-3 text-gray-700">{{ cell }}</td>
-                  </tr>
-                </tbody>
-              </table>
+          <template #header>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-sparkles text-sky-600"></i>
+              <span class="font-bold text-gray-800">{{ activeTopic?.name }}</span>
+              <span v-if="contentBadge" class="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full">
+                #{{ contentBadge }}
+              </span>
             </div>
-  
-            <div v-if="aiData.mermaid_diagram" ref="mermaidContainer" class="mermaid-wrapper overflow-x-auto my-2"></div>
-  
-            <div v-if="aiData.exam_tip" class="flex items-start gap-2 bg-amber-50 text-amber-700 text-xs rounded-lg px-3 py-2">
-              <i class="pi pi-flag mt-0.5"></i>
-              <span>{{ aiData.exam_tip }}</span>
+          </template>
+          <Transition name="fade" mode="out-in">
+            <div v-if="aiLoading" class="flex flex-col gap-3 py-2">
+              <Skeleton height="1rem" width="90%" />
+              <Skeleton height="1rem" width="75%" />
+              <Skeleton height="1rem" width="60%" />
             </div>
-          </div>
+
+            <div v-else-if="aiError" class="text-sm text-red-600 py-2">
+              Couldn't load this right now.
+              <button @click="fetchAiDescription(activeTopic)" class="underline font-semibold ml-1">Retry</button>
+            </div>
+
+            <div v-else-if="aiData" class="flex flex-col gap-5 py-1">
+
+              <div class="bg-sky-50/70 border border-sky-100 rounded-xl px-4 py-3">
+                <p class="text-[15px] text-gray-800 leading-relaxed font-medium">{{ aiData.summary }}</p>
+              </div>
+
+              <div v-if="aiData.key_points?.length" class="flex flex-col gap-3">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">Remember these</span>
+                <div class="flex flex-col gap-2.5">
+                  <div v-for="(point, i) in aiData.key_points" :key="i" class="flex items-start gap-3">
+                    <span class="shrink-0 w-5 h-5 rounded-full bg-sky-100 text-sky-700 text-[11px] font-bold flex items-center justify-center mt-0.5">
+                      {{ i + 1 }}
+                    </span>
+                    <span class="text-sm text-gray-700 leading-snug">{{ point }}</span>
+                  </div>
+                </div>
+              </div>
+              <Divider v-if="aiData.table" class="my-0!" />
+              <div v-if="aiData.table" class="flex flex-col gap-2">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">Quick compare</span>
+                <div class="overflow-x-auto rounded-lg border border-gray-100">
+                  <table class="w-full text-xs border-collapse">
+                    <thead>
+                      <tr class="bg-gray-50">
+                        <th v-for="(col, i) in aiData.table.columns" :key="i" class="text-left py-2 px-3 text-gray-500 font-semibold">{{ col }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(row, i) in aiData.table.rows" :key="i" class="border-t border-gray-100">
+                        <td v-for="(cell, j) in row" :key="j" class="py-2 px-3 text-gray-700">{{ cell }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div v-if="aiData.mermaid_diagram" class="flex flex-col gap-2">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">How it works</span>
+                <div ref="mermaidContainer" class="mermaid-wrapper flex justify-center overflow-x-auto rounded-lg border border-gray-100 bg-gray-50/50 p-3"></div>
+              </div>
+
+              <div v-if="aiData.exam_tip" class="flex items-start gap-2 bg-amber-50 text-amber-700 text-xs rounded-lg px-3 py-2.5">
+                <i class="pi pi-flag mt-0.5"></i>
+                <span><span class="font-semibold me-2">EXAM TIP: </span> {{ aiData.exam_tip }}</span>
+              </div>
+
+              <div class="flex justify-end pt-1">
+                <Button 
+                  :label="activeTopic?.completed ? 'Marked as done' : 'Got it — mark as done'"
+                  :icon="activeTopic?.completed ? 'pi pi-check-circle' : 'pi pi-circle'"
+                  size="small"
+                  :severity="activeTopic?.completed ? 'success' : 'primary'"
+                  :outlined="!activeTopic?.completed"
+                  @click="markReviewed"
+                />
+              </div>
+              <p class="text-[11px] text-gray-400 text-center pt-1">AI-generated — worth double-checking against your syllabus.</p>
+            </div>
+          </Transition>
         </Dialog>
       </div>
     </div>
   </template>
   
   <script setup>
-  import { onBeforeUnmount, onMounted, ref, watch, computed, nextTick } from 'vue'
+  import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue'
   import { useSubjectStore } from '@/stores/subject.js'
   
   import Select from 'primevue/select'
@@ -275,9 +357,17 @@
   import Dialog from 'primevue/dialog'
   import Skeleton from 'primevue/skeleton'
   import mermaid from 'mermaid'
+  import Divider from 'primevue/divider'
+
   import { useRouter } from 'vue-router'
   
-  mermaid.initialize({ startOnLoad: false })
+  mermaid.initialize({ 
+  startOnLoad: false,
+  fontFamily: 'Inter, sans-serif', // Tells Mermaid to calculate box sizes using Inter
+  flowchart: {
+    padding: 15 // Increases the inner spacing of the boxes (default is usually 8-10)
+  }
+})
   
   const router = useRouter()
   const subjectStore = useSubjectStore()
@@ -347,30 +437,23 @@
     await fetchAiDescription(topic)
   }
   
-  async function fetchAiDescription(topic) {
-    if (!topic?.id) return
-    aiLoading.value = true
-    aiError.value = false
-    aiData.value = null
-    try {
-      const res = await fetch(`${baseUrl}/api/topics/${topic.id}/ai-description`)
-      if (!res.ok) throw new Error('Request failed')
-      aiData.value = await res.json()
-      if (aiData.value.mermaid_diagram) {
-        await nextTick()
-        if (mermaidContainer.value) {
-          mermaidContainer.value.innerHTML = '' 
-          const { svg } = await mermaid.render(`diagram-${topic.id}-${Date.now()}`, aiData.value.mermaid_diagram)
-          mermaidContainer.value.innerHTML = svg
-        }
-      }
-    } catch (err) {
-      console.error('AI Description error:', err)
-      aiError.value = true
-    } finally {
-      aiLoading.value = false
-    }
+async function fetchAiDescription(topic) {
+  if (!topic?.id) return
+  aiLoading.value = true
+  aiError.value = false
+  aiData.value = null
+  try {
+    const res = await fetch(`${baseUrl}/api/topics/${topic.id}/ai-description`)
+    if (!res.ok) throw new Error('Request failed')
+    aiData.value = await res.json()
+  } catch (err) {
+    console.error('AI Description error:', err)
+    aiError.value = true
+  } finally {
+    aiLoading.value = false
   }
+}
+
   async function loadAllSubjects() {
   loading.value = true
   try {
@@ -454,7 +537,6 @@
     unitsMap.get(unitKey).topics.push({
       id: topicIdStr,
       name: topic.topic || topic.name,
-      //weightage: topic.weightage || '',
       completed: storedIds.has(topicIdStr) || Boolean(topic.completed)
     })
   })
@@ -575,6 +657,49 @@ onBeforeUnmount(() => {
       subjectStore.filters.topicId = topicId
       router.push({name: 'questions', params: {subjectId: selectedSubject.value.id}})
   }
+  const contentBadge = computed(() => {
+  if (!aiData.value) return null
+  if (aiData.value.table) return 'Comparison'
+  if (aiData.value.mermaid_diagram) return 'Process'
+  return 'Concept'
+})
+
+// const badgeClasses = computed(() => ({
+//   Comparison: 'bg-violet-100 text-violet-700',
+//   Process: 'bg-sky-100 text-sky-700',
+//   Concept: 'bg-emerald-100 text-emerald-700',
+// }[contentBadge.value] || 'bg-gray-100 text-gray-600'))
+
+function markReviewed() {
+  if (activeTopic.value) activeTopic.value.completed = true
+  aiDialogVisible.value = false
+}
+
+watch(
+  () => mermaidContainer.value,
+  async (containerEl) => {
+    if (!containerEl || !aiData.value?.mermaid_diagram) return
+    try {
+      containerEl.innerHTML = ''
+      
+      // 1. Unescape the literal newline characters
+      const formattedDiagram = aiData.value.mermaid_diagram.replace(/\\n/g, '\n')
+      
+      // 2. Pass the formatted string to the render function
+      const { svg } = await mermaid.render(`diagram-${Date.now()}`, formattedDiagram)
+      
+      if (mermaidContainer.value) {
+        mermaidContainer.value.innerHTML = svg
+      }
+    } catch (err) {
+      console.error('Mermaid render error:', err)
+      if (aiData.value) {
+        aiData.value.mermaid_diagram = null
+      }
+    }
+  }
+)
+
   </script>
   
   <style scoped>
@@ -584,4 +709,33 @@ onBeforeUnmount(() => {
   :deep(.custom-timeline .p-timeline-event-content) {
     flex: 1;
   }
-  </style>
+  .fade-enter-active { transition: opacity 0.2s ease; }
+  .fade-enter-from { opacity: 0; }
+  /* Target the SVG rectangles (the boxes) */
+  :deep(.mermaid-wrapper .node rect) {
+  /* bg-sky-50/70 (Sky 50 is #f0f9ff at 70% opacity) */
+  fill: rgba(240, 249, 255, 0.7) !important; 
+  
+  /* border border-sky-100 (#e0f2fe) */
+  stroke: #83c7f2 !important; 
+  stroke-width: 1px !important;
+  
+  /* rounded-xl (12px border radius) */
+  rx: 12px !important; 
+  ry: 12px !important;
+}
+
+:deep(.mermaid-wrapper .node .label) {
+  color: #0369a1 !important; /* text-sky-700 */
+  font-weight: 500 !important;
+}
+:deep(.mermaid-wrapper .node foreignObject) {
+  overflow: visible !important;
+}
+
+:deep(.mermaid-wrapper .node .label) {
+  white-space: normal !important;
+  line-height: 1.4 !important;
+}
+
+</style>
