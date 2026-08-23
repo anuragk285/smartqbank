@@ -1,14 +1,12 @@
 <template>
     <div class="w-full">
       <div class="relative flex min-h-screen w-full">
-        <!-- Mobile Overlay -->
         <div 
           v-if="isMobile && open" 
           @click="closeSidebar()" 
           class="fixed inset-0 bg-black/40 z-50 lg:hidden"
         ></div>
-  
-        <!-- Sidebar -->
+
         <aside
           :class="[
             'bg-white border-gray-200 transition-all duration-300 z-50 flex flex-col justify-between overflow-hidden',
@@ -113,7 +111,6 @@
           <div>
   
             <div class="max-w-6xl mx-auto p-6 min-h-screen">
-              <!-- Overall Progress Section -->
               <div class="p-6 rounded-2xl shadow-sm border border-gray-200 mb-8 z-20 backdrop-blur-md bg-white/90">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                   <div>
@@ -136,7 +133,6 @@
                 <ProgressBar :value="progressPercentage" :showValue="true" style="height: 12px" />
               </div>
   
-              <!-- Unit Timelines -->
               <div class="space-y-10 flex flex-col gap-y-24">
                 <div 
                   v-for="(unit, i) in units" 
@@ -212,7 +208,6 @@
           </div>
         </main>
   
-        <!-- AI Description Dialog -->
         <Dialog 
           v-model:visible="aiDialogVisible" 
           :header="activeTopic?.name" 
@@ -306,7 +301,6 @@
   let mql = null
   let onMqlChange = null
   
-  // AI Dialog state
   const aiDialogVisible = ref(false)
   const aiLoading = ref(false)
   const aiError = ref(false)
@@ -439,31 +433,49 @@
   }
   
   const convertToTree = (topicsList) => {
-    const unitsMap = new Map()
-  
-    topicsList.forEach((topic) => {
-      const unitNum = topic.unit || 1
-      const unitKey = `unit-${unitNum}`
-  
-      if (!unitsMap.has(unitKey)) {
-        unitsMap.set(unitKey, {
-          id: unitKey,
-          number: `Unit ${unitNum}`,
-          title: topic.unit_title || `Unit ${unitNum}`,
-          topics: []
-        })
-      }
-  
-      unitsMap.get(unitKey).topics.push({
-        id: String(topic.id),
-        name: topic.topic || topic.name,
-        weightage: topic.weightage || '',
-        completed: Boolean(topic.completed)
+  const unitsMap = new Map()
+  const storedIds = new Set(subjectStore.filters.completedTopicIds.map(String))
+
+  topicsList.forEach((topic) => {
+    const unitNum = topic.unit || 1
+    const unitKey = `unit-${unitNum}`
+
+    if (!unitsMap.has(unitKey)) {
+      unitsMap.set(unitKey, {
+        id: unitKey,
+        number: `Unit ${unitNum}`,
+        title: topic.unit_title || `Unit ${unitNum}`,
+        topics: []
+      })
+    }
+
+    const topicIdStr = String(topic.id)
+
+    unitsMap.get(unitKey).topics.push({
+      id: topicIdStr,
+      name: topic.topic || topic.name,
+      //weightage: topic.weightage || '',
+      completed: storedIds.has(topicIdStr) || Boolean(topic.completed)
+    })
+  })
+
+  return [...unitsMap.values()]
+}
+watch(
+  units,
+  (newUnits) => {
+    const activeCompletedIds = []
+    newUnits.forEach(unit => {
+      unit.topics?.forEach(topic => {
+        if (topic.completed) {
+          activeCompletedIds.push(String(topic.id))
+        }
       })
     })
-  
-    return [...unitsMap.values()]
-  }
+    subjectStore.setCompletedTopicIds(activeCompletedIds)
+  },
+  { deep: true }
+)
   
 async function applyFilterOnSubjects() {
   if (!selectedSubject.value) { 
@@ -474,7 +486,6 @@ async function applyFilterOnSubjects() {
   
   headerSubject.value = selectedSubject.value
   
-  // Update Pinia store so persisted state remains accurate
   subjectStore.selectSubject(selectedSubject.value)
   subjectStore.filters.department = selectedDepartment.value
   subjectStore.filters.semester = selectedSemester.value
@@ -505,18 +516,17 @@ async function applyFilterOnSubjects() {
   }
   mql.addEventListener('change', onMqlChange)
 
-  // Initial load once; set headerSubject on first success
   await loadAllSubjects()
   if (selectedSubject.value) {
     headerSubject.value = selectedSubject.value
   }
 })
 
-  onBeforeUnmount(() => {
-    if (mql && onMqlChange) {
-      mql.removeEventListener('change', onMqlChange)
-    }
-  })
+onBeforeUnmount(() => {
+  if (mql && onMqlChange) {
+    mql.removeEventListener('change', onMqlChange)
+  }
+})
   
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -525,9 +535,6 @@ async function applyFilterOnSubjects() {
   function closeSidebar() {
     open.value = false
     selectedSubject.value = headerSubject.value
-    // selectedDepartment.value = headerDepartment.value
-    // selectedRegulationCode.value = headerRegulationCode.value
-    // selectedSemester.value = headerSemester.value
   }
   
   const totalTopicsCount = computed(() => {
@@ -550,12 +557,13 @@ async function applyFilterOnSubjects() {
   }
   
   const resetProgress = () => {
-    units.value.forEach(unit => {
-      unit.topics?.forEach(topic => {
-        topic.completed = false
-      })
+  units.value.forEach(unit => {
+    unit.topics?.forEach(topic => {
+      topic.completed = false
     })
-  }
+  })
+  subjectStore.resetCompletedTopics()
+}
   
   function searchGoogle(topicName) {
     const subjectName = selectedSubject.value?.name || ''

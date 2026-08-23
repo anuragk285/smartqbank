@@ -8,7 +8,9 @@ export const useSubjectStore = defineStore('subject', () => {
     department: 'CSE',
     semester: 5,
     regulation_code: 'R22',
-    topicId: -1
+    topicId: -1,
+    totalTopics: -1,
+    completedTopicIds: []
   })
 
   function selectSubject(subject) {
@@ -19,6 +21,21 @@ export const useSubjectStore = defineStore('subject', () => {
     selectedSubject.value = null
   }
 
-  return { selectedSubject, selectSubject, clearSubject, filters }
+  function setCompletedTopicIds(ids) {
+    filters.value.completedTopicIds = ids
+  }
+
+  function resetCompletedTopics() {
+    filters.value.completedTopicIds = []
+  }
+
+  return { 
+    selectedSubject, 
+    selectSubject, 
+    clearSubject, 
+    filters,
+    setCompletedTopicIds,
+    resetCompletedTopics
+  }
 },
-{persist: true})
+{ persist: true })
