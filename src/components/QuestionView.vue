@@ -31,7 +31,7 @@
                 ref="multiSelectRef"
                 optionLabel="label"
                 optionValue="key"
-                optionGroupChildren="items"
+                optionGroupChildren="children"
                 optionGroupLabel="label"
                 filter
                 filterBy="label"
@@ -340,7 +340,6 @@ const open = ref(!checkInitialMobile())
 const baseUrl = import.meta.env.VITE_API_BASE_URL
 const loading = ref(false)
 const filterQuery = ref('')
-const multiSelectRef = ref(null);
 const resettingFilters = ref(false)
 
 function clearFilter() {
@@ -495,8 +494,10 @@ onMounted(async () => {
     }
   }
   loading.value = false
-  loadTopics()
-  fetchQuestions()
+  await loadTopics()
+  if(subjectStore.filters.topicId !== -1)
+    await showSelectedTopicQuestions(subjectStore.filters.topicId)
+  else await fetchQuestions()
 })
 
 onBeforeUnmount(() => {
