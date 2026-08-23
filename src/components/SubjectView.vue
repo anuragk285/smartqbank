@@ -235,7 +235,7 @@ onMounted(() => {
   mql = window.matchMedia('(max-width: 1023px)')
   isMobile.value = mql.matches
   open.value = !isMobile.value
-
+  subjectStore.filters.topicId = -1
   onMqlChange = (event) => {
     isMobile.value = event.matches
     open.value = !event.matches

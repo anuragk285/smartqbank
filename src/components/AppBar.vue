@@ -9,9 +9,8 @@
           <span class="px-2.5 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-sky-700 bg-sky-50 border border-sky-200 rounded-full shadow-sm cursor-default">Beta</span>
         </div>
       </div>  
-      <div class="">
+      <div v-if="route.name !== 'subjects'">
         <Breadcrumb
-          v-if="route.name !== 'subjects'"
           :home="home"
           :model="breadcrumbItems"
           class="p-0! bg-transparent! border-0"
@@ -19,13 +18,13 @@
           <template #item="{ item, props }">
             <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
               <a :href="href" v-bind="props.action" @click="navigate" class="flex items-center gap-2 text-gray-500 hover:text-tertiary transition-colors">
-                <span v-if="item.icon" :class="item.icon" class="text-sm"></span>
+                <span v-if="item.icon" :class="item.icon" class="text-md"></span>
                 <span v-if="item.label" class="text-sm font-medium">{{ item.label }}</span>
               </a>
             </router-link>
             
             <span v-else v-bind="props.action" class="flex items-center gap-2  font-semibold">
-              <span v-if="item.icon" :class="item.icon" class="text-sm"></span>
+              <span v-if="item.icon" :class="item.icon" class="text-md"></span>
               <span v-if="item.label" class="text-sm text-gray-500 hover:text-tertiary">{{ item.label }}</span>
             </span>
           </template>
@@ -35,23 +34,34 @@
           </template>
         </Breadcrumb>
       </div>
+      <div v-if="route.name!=='roadmap'" class="ml-auto">
+        <Button class="group flex items-center gap-2 border-gray-300 bg-gray-50 hover:bg-gray-100"
+            @click="goToRoadMapPage">
+              <span class="font-bold text-glow" data-text="Important Topics">
+                Road map
+              </span>
+            </Button>
+      </div>
     </div>
   </header>
 </template>
 <script setup>
 import Breadcrumb from 'primevue/breadcrumb'
+import Button from 'primevue/button'
+
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useSubjectStore } from '@/stores/subject'
 import { storeToRefs } from 'pinia'
 
+const router = useRouter()
 const home = { icon: 'pi pi-home', route: '/' }
 const route = useRoute()
 const subjectStore = useSubjectStore()
 const { selectedSubject } = storeToRefs(subjectStore)
 
 const breadcrumbItems = computed(() => {
-  if (route.name === 'questions' || route.name == 'quick-prep' && selectedSubject.value) {
+  if (route.name === 'questions') {
     const items = []
     const sub = selectedSubject.value
     if (sub.department) {
@@ -62,9 +72,13 @@ const breadcrumbItems = computed(() => {
       })
     }
     if (sub.name) items.push({ label: selectedSubject.value.name })
-    if(route.name == 'quick-prep') items.push({label: 'Quick Prep'})
     return items
-  }
+}
+  if(route.name == 'roadmap') return [{label: 'Road map'}]
+  if(route.name == 'important-topics') return [{label: "Important Topics"}]
   return []
 })
+function goToRoadMapPage(){
+  router.push({name: 'roadmap'})
+}
 </script>
