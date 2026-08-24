@@ -192,10 +192,10 @@
                   <MobileRoadMap 
                     v-if="isMobile" 
                     :unit="unit" 
-                    :selectedSubject="selectedSubject"
                     :isMobile="isMobile"
                     @aiDescription="openAiDescription($event)"
                     @googleSearch="searchGoogle($event)"
+                    @topicId="goToQuestionsPage($event)"
                     />
   
                   <Timeline v-else :value="unit.topics" :align="isMobile ? ((i%2 === 0) ? 'left' : 'right'): 'alternate'" class="custom-timeline">
