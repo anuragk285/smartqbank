@@ -24,7 +24,7 @@
                 >
                     {{ topic.name }}
                 </label>
-                <Button @click="goToQuestionsPage(topic.id)" unstyled class="group flex gap-1 pe-2 hover:text-tertiary flex-nowrap cursor-pointer text-[12px] items-center rounded-xl px-2">
+                <Button @click="$emit('topicId', topic.id)" unstyled class="group flex gap-1 pe-2 hover:text-tertiary flex-nowrap cursor-pointer text-[12px] items-center rounded-xl px-2">
                     questions
                     <span class="pi pi-arrow-right text-xs group-hover:translate-x-1.25 transition-transform duration-300"></span>
                 </Button>
