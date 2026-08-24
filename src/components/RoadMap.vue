@@ -101,9 +101,15 @@
               <h4 class="text-sky-700 text-sm">FILTERS</h4>
               <span class="pi pi-filter text-sky-700 text-sm"></span>
             </Button>
-            <div class="flex flex-col gap-2 ml-6 mt-3">
-              <h1 class="font-bold text-2xl text-primary-dark tracking-wide">{{ headerSubject?.name }}</h1>
-              <h3 class="text-gray-500">#{{ headerSubject?.subject_code }}</h3>
+            <div >
+              <div v-if="loading" class="flex flex-col gap-2 ml-6 mt-3">
+                <Skeleton height="1rem" width="12rem"></Skeleton>
+                <Skeleton height="1rem" width="3rem"></Skeleton>
+              </div>
+              <div v-else class="flex flex-col gap-2 ml-6 mt-3">
+                <h1 class="font-bold text-2xl text-primary-dark tracking-wide">{{ headerSubject?.name }}</h1>
+                <h3 class="text-gray-500">#{{ headerSubject?.subject_code }}</h3>
+              </div>
             </div>
           </header>
   
@@ -131,12 +137,47 @@
   
                 <ProgressBar :value="progressPercentage" :showValue="true" style="height: 12px" />
               </div>
-  
-              <div class="space-y-10 flex flex-col gap-y-12">
+              <div v-if="loading">
+                <div v-for="i in Array(5)" :key="i">
+                  <div class="flex items-center justify-between mb-6 pb-3 border-b border-gray-300">
+                    <span class="text-xs font-medium text-gray-500">
+                      0 / 0 Done
+                    </span>
+                  </div>
+                  <div v-if="isMobile">
+                    <div v-for="t in Array(5)" :key="t">
+                      <div class="p-5 min-w-70 rounded-lg bg-gray-50 border-gray-200 hover:border-primary-400 hover:shadow-md transition-all duration-200 my-4 shadow-sm flex flex-col">
+                        <div class="flex justify-between">
+                          <Skeleton height="1rem" width="10rem"></Skeleton>
+                          <Skeleton heiht="1rem" width="3rem"></Skeleton>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <Timeline v-else :value="skeletonItems" :align="isMobile ? 'left' : 'alternate'" class="custom-timeline">
+                    <template #content>
+                      <div class="py-4 min-w-70 rounded-lg border border-gray-200 my-2 shadow-sm bg-gray-50/50">
+                        <div class="flex items-start gap-3 px-3">
+                          <Skeleton shape="square" size="1.25rem" class="mt-0.5 shrink-0" />
+                          
+                          <div class="flex justify-between items-center flex-1 gap-2">
+                            <Skeleton width="60%" height="1.25rem" />
+                            <Skeleton width="5rem" height="1.5rem" borderRadius="12px" />
+                          </div>
+                        </div>
+                        <div class="flex justify-between gap-4 mt-4 mx-5">
+                          <Skeleton width="5.5rem" height="0.875rem" />
+                          <Skeleton width="4rem" height="0.875rem" />
+                        </div>
+                      </div>
+                    </template>
+                  </Timeline>
+                </div>
+              </div>
+              <div v-else class="space-y-10 flex flex-col gap-y-12">
                 <div 
                   v-for="(unit, i) in units" 
                   :key="unit.id" 
-                  class=""
                 >
                   <div class="flex items-center justify-between mb-6 pb-3 border-b border-gray-300">
                     <div class="flex items-center gap-3">
@@ -148,54 +189,14 @@
                       {{ getUnitCompletedCount(unit) }} / {{ unit.topics.length }} Done
                     </span>
                   </div>
-                  <div v-if="isMobile">
-                    <div 
-                        v-for="topic in unit.topics" :key="topic.id"
-                        class="py-5 min-w-70 rounded-lg border transition-all duration-200 my-4 shadow-sm"
-                        :class="[
-                          topic.completed 
-                            ? 'bg-emerald-50/60 border-emerald-300 shadow-emerald-50' 
-                            : 'bg-white border-gray-200 hover:border-primary-400 hover:shadow-md'
-                        ]"
-                      >
-                        <div class="flex items-start gap-3 px-3">
-                          <Checkbox 
-                            v-model="topic.completed" 
-                            :binary="true" 
-                            :inputId="String(topic.id)"
-                            class="mt-0.5"
-                          />
-                          <div class="flex justify-between flex-1">
-                            <label 
-                              :for="String(topic.id)" 
-                              class="text-md font-semibold cursor-pointer select-none text-left transition-colors"
-                              :class="topic.completed ? 'line-through text-gray-400' : 'text-gray-800'"
-                            >
-                              {{ topic.name }}
-                            </label>
-                            <Button @click="goToQuestionsPage(topic.id)" unstyled class="group flex gap-1 pe-2 hover:text-tertiary flex-nowrap cursor-pointer text-[12px] items-center rounded-xl px-2">
-                              questions
-                              <span class="pi pi-arrow-right text-xs group-hover:translate-x-1.25 transition-transform duration-300"></span>
-                            </Button>
-                          </div>
-                        </div>
-  
-                        <div class="flex justify-between gap-4 mt-3 mx-5">
-                          <button 
-                            @click="openAiDescription(topic)"
-                            class="flex items-center gap-1 text-xs font-medium text-sky-700 hover:text-sky-900 cursor-pointer"
-                          >
-                            <i class="pi pi-sparkles text-xs"></i> AI description
-                          </button>
-                          <button 
-                            @click="searchGoogle(topic.name)"
-                            class="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
-                          >
-                            <i class="pi pi-search text-xs"></i> Google
-                          </button>
-                        </div>
-                      </div>
-                  </div>
+                  <MobileRoadMap 
+                    v-if="isMobile" 
+                    :unit="unit" 
+                    :selectedSubject="selectedSubject"
+                    :isMobile="isMobile"
+                    @aiDescription="openAiDescription($event)"
+                    @googleSearch="searchGoogle($event)"
+                    />
   
                   <Timeline v-else :value="unit.topics" :align="isMobile ? ((i%2 === 0) ? 'left' : 'right'): 'alternate'" class="custom-timeline">
                     <template #content="slotProps">
@@ -204,7 +205,7 @@
                         :class="[
                           slotProps.item.completed 
                             ? 'bg-emerald-50/60 border-emerald-300 shadow-emerald-50' 
-                            : 'bg-white border-gray-200 hover:border-primary-400 hover:shadow-md'
+                            : 'border-gray-200 hover:border-primary-400 hover:shadow-md'
                         ]"
                       >
                         <div class="flex items-start gap-3 px-3">
@@ -360,12 +361,13 @@
   import Divider from 'primevue/divider'
 
   import { useRouter } from 'vue-router'
+  import MobileRoadMap from './MobileRoadMap.vue'
   
   mermaid.initialize({ 
   startOnLoad: false,
-  fontFamily: 'Inter, sans-serif', // Tells Mermaid to calculate box sizes using Inter
+  fontFamily: 'Inter, sans-serif',
   flowchart: {
-    padding: 15 // Increases the inner spacing of the boxes (default is usually 8-10)
+    padding: 15 
   }
 })
   
@@ -397,6 +399,7 @@
   const aiData = ref(null)
   const activeTopic = ref(null)
   const mermaidContainer = ref(null)
+  const skeletonItems = [1, 2, 3, 4];
   
   const regulationCodes = ref([
     { label: 'R22A', value: 'R22A' },
@@ -664,12 +667,6 @@ onBeforeUnmount(() => {
   return 'Concept'
 })
 
-// const badgeClasses = computed(() => ({
-//   Comparison: 'bg-violet-100 text-violet-700',
-//   Process: 'bg-sky-100 text-sky-700',
-//   Concept: 'bg-emerald-100 text-emerald-700',
-// }[contentBadge.value] || 'bg-gray-100 text-gray-600'))
-
 function markReviewed() {
   if (activeTopic.value) activeTopic.value.completed = true
   aiDialogVisible.value = false
@@ -681,13 +678,8 @@ watch(
     if (!containerEl || !aiData.value?.mermaid_diagram) return
     try {
       containerEl.innerHTML = ''
-      
-      // 1. Unescape the literal newline characters
       const formattedDiagram = aiData.value.mermaid_diagram.replace(/\\n/g, '\n')
-      
-      // 2. Pass the formatted string to the render function
       const { svg } = await mermaid.render(`diagram-${Date.now()}`, formattedDiagram)
-      
       if (mermaidContainer.value) {
         mermaidContainer.value.innerHTML = svg
       }
@@ -711,22 +703,19 @@ watch(
   }
   .fade-enter-active { transition: opacity 0.2s ease; }
   .fade-enter-from { opacity: 0; }
-  /* Target the SVG rectangles (the boxes) */
   :deep(.mermaid-wrapper .node rect) {
-  /* bg-sky-50/70 (Sky 50 is #f0f9ff at 70% opacity) */
+
   fill: rgba(240, 249, 255, 0.7) !important; 
   
-  /* border border-sky-100 (#e0f2fe) */
   stroke: #83c7f2 !important; 
   stroke-width: 1px !important;
   
-  /* rounded-xl (12px border radius) */
   rx: 12px !important; 
   ry: 12px !important;
 }
 
 :deep(.mermaid-wrapper .node .label) {
-  color: #0369a1 !important; /* text-sky-700 */
+  color: #0369a1 !important;
   font-weight: 500 !important;
 }
 :deep(.mermaid-wrapper .node foreignObject) {
