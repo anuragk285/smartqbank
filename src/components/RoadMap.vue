@@ -107,14 +107,12 @@
                 <Skeleton height="1rem" width="3rem"></Skeleton>
               </div>
               <div v-else class="flex flex-col gap-2 ml-6 mt-3">
-                <h1 class="font-bold text-2xl text-primary-dark tracking-wide">{{ headerSubject?.name }}</h1>
-                <h3 class="text-gray-500">#{{ headerSubject?.subject_code }}</h3>
+                <h1 class="font-bold text-2xl text-primary-dark tracking-wide">{{ headerSubject?.name || 'No Subject Selected' }}</h1>
+                <h3 class="text-gray-500">#{{ headerSubject?.subject_code || '000000'  }}</h3>
               </div>
             </div>
           </header>
-  
-          <div>
-  
+          <div v-if="headerSubject">
             <div class="max-w-6xl mx-auto p-6 min-h-screen">
               <div class="p-6 rounded-2xl shadow-sm border border-gray-200 mb-8 z-20 backdrop-blur-md bg-white/90">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
@@ -254,6 +252,13 @@
               </div>
             </div>
           </div>
+          <div v-else class="max-w-6xl mx-auto p-6 min-h-screen">
+            <div class="flex flex-col items-center justify-center p-8 text-center border border-dashed border-gray-300 rounded-lg bg-gray-50 my-4">
+              <span class="pi pi-filter-slash text-3xl text-gray-400 mb-2"></span>
+              <h3 class="text-base font-semibold text-gray-700">No Topics Found</h3>
+              <p class="text-xs text-gray-500 mt-1">ERROR 404.</p>
+            </div>
+          </div>
         </main>  
         <Dialog 
           v-model:visible="aiDialogVisible" 
@@ -318,7 +323,7 @@
               </div>
 
               <div v-if="aiData.mermaid_diagram" class="flex flex-col gap-2">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">How it works</span>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">{{ sectionLabel }}</span>
                 <div ref="mermaidContainer" class="mermaid-wrapper flex justify-center overflow-x-auto rounded-lg border border-gray-100 bg-gray-50/50 p-3"></div>
               </div>
 
@@ -477,7 +482,7 @@ async function fetchAiDescription(topic) {
       selectedSubject.value = null
     }
 
-    if(units.value.length === 0) await loadTopics()
+    await loadTopics()
   } catch (error) {
     console.error('Failed loading subjects:', error)
     subjects.value = []
@@ -491,7 +496,7 @@ async function fetchAiDescription(topic) {
   async function loadTopics() {
     const subjectId = selectedSubject.value?.id
     const numericSubjectId = Number(subjectId)
-  
+    console.log(selectedSubject.value.name)
     if (!subjectId || isNaN(numericSubjectId)) {
       rawTopics.value = []
       units.value = []
@@ -515,6 +520,7 @@ async function fetchAiDescription(topic) {
       units.value = []
     } finally {
       loading.value = false
+      headerSubject.value = selectedSubject.value
     }
   }
   
@@ -546,9 +552,7 @@ async function fetchAiDescription(topic) {
 
   return [...unitsMap.values()]
 }
-watch(
-  units,
-  (newUnits) => {
+watch(units, (newUnits) => {
     const activeCompletedIds = []
     newUnits.forEach(unit => {
       unit.topics?.forEach(topic => {
@@ -660,10 +664,11 @@ onBeforeUnmount(() => {
       subjectStore.filters.topicId = topicId
       router.push({name: 'questions', params: {subjectId: selectedSubject.value.id}})
   }
-  const contentBadge = computed(() => {
+const contentBadge = computed(() => {
   if (!aiData.value) return null
+  const map = { venn: 'Overlap', treemap: 'Hierarchy', flowchart: 'Process', sequence: 'Process' }
+  if (aiData.value.diagram_type) return map[aiData.value.diagram_type]
   if (aiData.value.table) return 'Comparison'
-  if (aiData.value.mermaid_diagram) return 'Process'
   return 'Concept'
 })
 
@@ -691,7 +696,12 @@ watch(
     }
   }
 )
-
+const sectionLabel = computed(() => ({
+  flowchart: 'How it works',
+  sequence: 'How it works',
+  venn: 'How they overlap',
+  treemap: 'Where it fits',
+}[aiData.value?.diagram_type] || 'How it works'))
   </script>
   
   <style scoped>

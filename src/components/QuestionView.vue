@@ -297,7 +297,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useSubjectStore } from '@/stores/subject'
 import { storeToRefs } from 'pinia'
 
-// Valid PrimeVue Component Imports
 import Checkbox from 'primevue/checkbox'
 import Paginator from 'primevue/paginator'
 import Button from 'primevue/button'
@@ -431,6 +430,7 @@ async function fetchQuestions() {
     params.append('sort_by', sortBy.value ? sortBy.value.value : null)
     params.append('sort_order', sortOrder.value ? sortOrder.value.value : 'asc')
   }
+  params.append('regulation_code', selectedSubject.value.regulation_code)
   if (Array.isArray(filters.value.topic)) {
     filters.value.topic.forEach(id => params.append('topic_ids', id))
   }
