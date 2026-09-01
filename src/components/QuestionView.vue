@@ -31,7 +31,7 @@
                 ref="multiSelectRef"
                 optionLabel="label"
                 optionValue="key"
-                optionGroupChildren="children"
+                optionGroupChildren="items"
                 optionGroupLabel="label"
                 filter
                 filterBy="label"
@@ -155,10 +155,11 @@
               </div>
             </div>
             <div class="shrink-0 sm:me-2">
-              <Button class="group flex items-center gap-2 border-gray-300 bg-gray-50 mt-4 ms-4 hover:bg-gray-100"
-                    @click="goToImportantTopicsPage()">
+              <Button class="group flex items-center gap-2 border-gray-300 bg-gray-50 mt-4 ms-4 hover:bg-gray-100"  
+                @click="goToImportantTopicsPage()"
+                >
               <span class="pi pi-book text-primary"></span>
-              <span class="font-bold text-glow" data-text="Important Topics">
+              <span class="font-bold text-glow"  data-text="Important Topics">
                 Important Topics
               </span>
             </Button>
@@ -279,10 +280,13 @@
               :class="isMobile ? 'w-full' : open ? 'w-[85ch]' : 'w-[95ch]'"
             >
               <span class="pi pi-filter-slash text-3xl text-gray-400 mb-2"></span>
-              <h3 class="text-base font-semibold text-gray-700">No questions match your filters</h3>
-              <p class="text-xs text-gray-500 mt-1">
-                Try adjusting your choices or checking different combinations.
-              </p>
+              <h3 v-if="regulation === 'R22A'" class="text-base font-semibold text-gray-700">Question paper is not yet set bro...</h3>
+              <div v-else>
+                <h3 class="text-base font-semibold text-gray-700">No questions match your filters</h3>
+                <p class="text-xs text-gray-500 mt-1">
+                  Try adjusting your choices or checking different combinations.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -340,6 +344,7 @@ const baseUrl = import.meta.env.VITE_API_BASE_URL
 const loading = ref(false)
 const filterQuery = ref('')
 const resettingFilters = ref(false)
+const regulation = selectedSubject.value.regulation_code
 
 function clearFilter() {
   filterQuery.value = ''

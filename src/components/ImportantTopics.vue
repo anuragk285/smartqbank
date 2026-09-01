@@ -7,7 +7,7 @@
                     <h2 class="ms-4 text-2xl tracking-wide text-primary font-bold">Important Topics</h2>
                     <h4 class="ms-4 text-gray-500 text-sm tracking-wide">{{ selectedSubject?.name }} ⋅ #{{ selectedSubject?.subject_code }}</h4>
                 </div>
-                <SelectButton class="mx-4 mt-4" size="small" v-model="selectedRegulation" :options="regulationOptions" optionLabel="label" optionValue="value" ariaLabelledby="basic" />
+                <SelectButton :disabled="currentRegulation === 'R22A'" class="mx-4 mt-4" size="small" v-model="selectedRegulation" :options="regulationOptions" optionLabel="label" optionValue="value" ariaLabelledby="basic" />
             </div>
             <div>
                 <div class="overflow-x-auto [-webkit-overflow-scrolling:touch]">

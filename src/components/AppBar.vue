@@ -35,12 +35,23 @@
           </template>
         </Breadcrumb>
       </div>
-      <div v-if="route.name!=='roadmap'" class="">
+      <div v-if="route.name!=='roadmap'">
         <Button class="group flex items-center gap-2 border-gray-300 bg-gray-50 hover:bg-gray-100"
             @click="goToRoadMapPage">
           <span class="font-bold text-glow" data-text="Important Topics">
             Road map
           </span>
+        </Button>
+      </div>
+      <div v-else class="shrink-0 sm:me-2">
+        <Button class="group flex items-center gap-2 border-gray-300 bg-gray-50 mt-4 ms-4 hover:bg-gray-100"  
+          @click="goToImportantTopicsPage()"
+          :disabled="!selectedSubject"
+          >
+        <span class="pi pi-book" :class="selectedSubject ? 'text-primary' : 'text-gray-500'"></span>
+        <span class="font-bold" :class="selectedSubject ? 'text-glow' : 'text-gray-500'"  data-text="Important Topics">
+          Important Topics
+        </span>
         </Button>
       </div>
     </div>
@@ -66,22 +77,34 @@ const breadcrumbItems = computed(() => {
   if (route.name === 'questions') {
     const items = []
     const sub = selectedSubject.value
-    if (sub.department) {
+    if (sub?.department) {
       const semLabel = typeof sub.semester === 'number' ? `Sem ${sub.semester}` : sub.semester
       items.push({
         label: typeof sub.department === 'object' ? `${sub.department.name} ⋅ ${semLabel}` : `${sub.department} ⋅ ${semLabel}`,
-        route: {name: 'subjects'}
+        route: { name: 'subjects' }
       })
     }
-    if (sub.name) items.push({ label: selectedSubject.value.name })
-    if(route.name == 'important-topics') items.push({label: 'Important Topics'})
+    if (sub?.name) items.push({ label: selectedSubject.value.name })
+    if (route.name === 'important-topics') items.push({ label: 'Important Topics' })
     return items
-}
-  if(route.name == 'roadmap') return [{label: 'Road map'}]
-  if(route.name == 'important-topics') return [{label: "Important Topics"}]
+  }
+  if (route.name === 'roadmap') return [{ label: 'Road map' }]
+  if (route.name === 'important-topics') return [{ label: 'Important Topics' }]
   return []
 })
-function goToRoadMapPage(){
-  router.push({name: 'roadmap'})
+
+function goToRoadMapPage() {
+  router.push({ name: 'roadmap' })
+}
+
+function goToImportantTopicsPage() {
+  const currentSubjectId = selectedSubject.value?.id
+
+  if (!currentSubjectId) return
+
+  router.push({
+    name: 'important-topics',
+    params: { subjectId: Number(currentSubjectId) } 
+  })
 }
 </script>

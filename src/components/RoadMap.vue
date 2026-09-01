@@ -496,7 +496,6 @@ async function fetchAiDescription(topic) {
   async function loadTopics() {
     const subjectId = selectedSubject.value?.id
     const numericSubjectId = Number(subjectId)
-    console.log(selectedSubject.value.name)
     if (!subjectId || isNaN(numericSubjectId)) {
       rawTopics.value = []
       units.value = []
