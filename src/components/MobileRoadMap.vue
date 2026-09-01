@@ -44,6 +44,11 @@
                 >
                 <i class="pi pi-search text-xs"></i> Google
                 </button>
+                <button 
+                    @click="$emit('youtubeSearch', topic.name)"
+                    class="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer">
+                    <i class="pi pi-youtube text-md text-red-500"></i> Youtube
+                </button>
             </div>
         </div>
     </div>

@@ -194,6 +194,7 @@
                     @aiDescription="openAiDescription($event)"
                     @googleSearch="searchGoogle($event)"
                     @topicId="goToQuestionsPage($event)"
+                    @youtubeSearch="searchYoutube($event)"
                     />
   
                   <Timeline v-else :value="unit.topics" :align="isMobile ? ((i%2 === 0) ? 'left' : 'right'): 'alternate'" class="custom-timeline">
@@ -221,9 +222,9 @@
                             >
                               {{ slotProps.item.name }}
                             </label>
-                            <span v-if="slotProps.item.weightage" class="text-xs text-amber-600 font-medium mt-1">
+                            <!-- <span v-if="slotProps.item.weightage" class="text-xs text-amber-600 font-medium mt-1">
                               {{ slotProps.item.weightage }}
-                            </span>
+                            </span> -->
                             <Button @click="goToQuestionsPage(slotProps.item.id)" unstyled class="group flex gap-1 pe-2 hover:text-tertiary flex-nowrap cursor-pointer text-[12px] items-center rounded-xl px-2">
                               questions
                               <span class="pi pi-arrow-right text-xs group-hover:translate-x-1.25 transition-transform duration-300"></span>
@@ -243,6 +244,11 @@
                             class="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
                           >
                             <i class="pi pi-search text-xs"></i> Google
+                          </button>
+                          <button 
+                            @click="searchYoutube(slotProps.item.name)" 
+                            class="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 cursor-pointer">
+                            <i class="pi pi-youtube text-md text-red-500"></i> Youtube
                           </button>
                         </div>
                       </div>
@@ -658,6 +664,12 @@ onBeforeUnmount(() => {
     const query = encodeURIComponent(`${topicName} in ${subjectName}`)
     window.open(`https://www.google.com/search?q=${query}`, '_blank')
   }
+
+  function searchYoutube(topicName) {
+    const subjectName = selectedSubject.value?.name || ''
+    const query = encodeURIComponent(`${topicName} in ${subjectName}`)
+    window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank')
+  } 
 
   function goToQuestionsPage(topicId){
       subjectStore.filters.topicId = topicId
